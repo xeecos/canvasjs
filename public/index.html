@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="xyplotter">
+<head>
+<meta charset="utf-8">
+
+<title>Laser Plotter</title>
+
+<link rel="stylesheet" href="css/master.css">
+<link rel="stylesheet" href="css/prism.css">
+<link rel="stylesheet" href="css/bootstrap.css">
+<link rel="stylesheet" href="css/kitchensink.css">
+<script src="lib/prism.js"></script>
+<script src="lib/svg2gcode.js"></script>
+<script src="lib/SVGReader.js"></script>
+<script src="lib/vec2.js"></script>
+<script src="lib/fabric.js"></script>
+<script src="lib/jquery.js"></script>
+<script src="lib/bootstrap.js"></script>
+<script src="js/paster.js"></script>
+<script src="js/angular.min.js"></script>
+<script src="js/jquery.mousewheel.min.js"></script>
+<script src="lib/font_definitions.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/app_config.js"></script>
+<script src="js/controller.js"></script>
+<script type="text/javascript" src="js/rgbcolor.js"></script> 
+<script type="text/javascript" src="js/StackBlur.js"></script>
+<script type="text/javascript" src="js/canvg.js"></script> 
+</head>
+<body>
+
+<div id="bd-wrapper" ng-controller="CanvasControls">
+
+<div style="position:relative;width:604px;float:left;" id="canvas-wrapper">
+
+<div id="canvas-controls">
+
+
+</div>
+
+<canvas id="canvas" width="600" height="600"></canvas>
+
+</div>
+
+<div id="commands" ng-click="maybeLoadShape($event)">
+
+<ul class="nav nav-tabs">
+<!--<li><a href="#simple-shapes" data-toggle="tab">Simple</a></li>
+<li><a href="#svg-shapes" data-toggle="tab">SVG</a></li>-->
+<li class="active"><a href="#object-controls-pane" data-toggle="tab">Controls</a></li>
+<!--<li><a href="#load-svg-pane" data-toggle="tab">Load SVG</a></li>
+<!--<li><a href="#execute-code" data-toggle="tab">Execute</a></li>
+<!--<li><a href="#json-inout" data-toggle="tab">JSON</a></li>-->
+<li><a href="#gcode-inout" data-toggle="tab">GCode</a></li>
+</ul>
+
+<div class="tab-content">
+
+<div class="tab-pane" id="svg-shapes">
+<p>Add <strong>SVG shapes</strong> to canvas:</p>
+
+<ul class="svg-shapes">
+</ul>
+</div>
+
+<div class="tab-pane" id="simple-shapes">
+
+</div>
+
+<div class="tab-pane active" id="object-controls-pane">
+
+<p>导入SVG: <input id='addsvg' type="file"></input></p>
+<p><button class="btn btn-success" id="rasterize-svg" ng-click="rasterizeSVG()">
+导出SVG
+</button>
+</p>
+
+<p>
+<button class="btn" ng-click="addText()">添加文字</button>
+</p>
+<div id="text-wrapper" style="margin-top: 10px" ng-show="getText()">
+
+<textarea bind-value-to="text" style="width: 228px; margin: 0px 0px 10px; height: 100px;"></textarea>
+
+<div id="text-controls">
+<label for="font-family" style="display:inline-block">字体:</label>
+<select id="font-family" class="btn-object-action" bind-value-to="fontFamily">
+<option value="arial">Arial</option>
+<option value="helvetica" selected>Helvetica</option>
+<option value="myriad pro">Myriad Pro</option>
+<option value="delicious">Delicious</option>
+<option value="verdana">Verdana</option>
+<option value="georgia">Georgia</option>
+<option value="courier">Courier</option>
+<option value="comic sans ms">Comic Sans MS</option>
+<option value="impact">Impact</option>
+<option value="monaco">Monaco</option>
+<option value="optima">Optima</option>
+<option value="hoefler text">Hoefler Text</option>
+<option value="plaster">Plaster</option>
+<option value="engagement">Engagement</option>
+<option value="STSong">华文宋体</option>
+<option value="STFangsong">华文仿宋</option>
+<option value="Yahei">雅黑</option>
+<option value="ccfont">华文隶书</option>
+<option value="STXingkai">华文行楷</option>
+<option value="STKaiti">华文楷体</option>
+</select>
+<br>
+<label for="text-align" style="display:inline-block">文字对齐:</label>
+<select id="text-align" class="btn-object-action" bind-value-to="textAlign">
+<option value="Left">左对齐</option>
+<option value="Center">文字居中</option>
+<option value="Right">右对齐</option>
+<option value="Justify">两端对齐</option>
+</select>
+<div>
+<label for="text-stroke-color">笔触深浅:</label>
+<input type="range" value="1" min="1" max="255" id="text-stroke-color" class="btn-object-action"
+bind-value-to="strokeColor">
+</div>
+<div>
+<label for="text-stroke-width">笔触宽度:</label>
+<input type="range" value="1" min="1" max="5" id="text-stroke-width" class="btn-object-action"
+bind-value-to="strokeWidth">
+</div>
+<div>
+<label for="text-font-size">字体大小:</label>
+<input type="range" value="" min="1" max="120" step="1" id="text-font-size" class="btn-object-action"
+bind-value-to="fontSize">
+</div>
+<div>
+<label for="text-line-height">行高:</label>
+<input type="range" value="" min="0" max="10" step="0.1" id="text-line-height" class="btn-object-action"
+bind-value-to="lineHeight">
+</div>
+<p>
+<button type="button" class="btn btn-object-action"
+ng-click="toggleBold()"
+ng-class="{'btn-inverse': isBold()}">
+粗体
+</button>
+<button type="button" class="btn btn-object-action" id="text-cmd-italic"
+ng-click="toggleItalic()"
+ng-class="{'btn-inverse': isItalic()}">
+斜体
+</button>
+</p>
+</div>
+</div>
+<p>
+<button class="btn btn-object-action" id="remove-selected"
+ng-click="removeSelected()">移除对象</button>
+<button class="btn btn-danger clear" ng-click="confirmClear()">清除画布</button>
+</p>
+<script>
+function fileSelect(e) {
+e = e || window.event;
+
+var files = this.files;
+
+for(var i = 0, f; f = files[i]; i++) {
+var reader = new FileReader();
+reader.onload = (function(file) {
+return function(e) {
+	console.log(this.result);
+	fabric.loadSVGFromString(this.result, function(objects, options) {
+	  var obj = fabric.util.groupSVGElements(objects, options);
+	  canvas.add(obj).centerObject(obj).renderAll();
+	  obj.setCoords();
+	});
+};
+})(f);
+reader.readAsText(f);
+}
+}
+document.getElementById('addsvg').addEventListener('change', fileSelect, false);
+</script>
+</p>
+
+</div>
+
+<div class="tab-pane" id="load-svg-pane">
+<textarea id="svg-console" bind-value-to="consoleSVG">
+</textarea>
+<button type="button" class="btn btn-info" ng-click="loadSVG()">
+Load
+</button>
+<button type="button" class="btn" ng-click="loadSVGWithoutGrouping()">
+Load without grouping
+</button>
+</div>
+
+<div class="tab-pane" id="execute-code">
+<textarea id="canvas-console" bind-value-to="console">
+</textarea>
+<button type="button" class="btn btn-info" ng-click="execute()">Execute</button>
+</div>
+
+<div class="tab-pane" id="json-inout">
+<textarea id="json-console" bind-value-to="consoleJSON"></textarea>
+<button type="button" class="btn btn-info" ng-click="loadJSON()">
+Load
+</button>
+<button type="button" class="btn btn-info" ng-click="saveJSON()">
+Save
+</button>
+</div>    
+
+<div class="tab-pane" id="gcode-inout">
+<textarea id="gcode-console" bind-value-to="consoleGCode" spellcheck="false"></textarea>
+<button type="button" class="btn btn-info" ng-click="refreshGCode()">
+Refresh
+</button>
+<button type="button" class="btn btn-info" ng-click="printGCode()">
+Print
+</button>
+
+<button type="button" class="btn btn-info" ng-click="switchLaser()">
+Switch Laser
+</button>
+<p style="margin-top:5px;">
+<button type="button" class="btn btn-info" ng-click="moveLeft()">
+X+
+</button>
+<button type="button" class="btn btn-info" ng-click="moveRight()">
+X-
+</button>
+<button type="button" class="btn btn-info" ng-click="setZero()">
+Set Zero
+</button>
+<button type="button" class="btn btn-info" ng-click="goZero()">
+Go Zero
+</button>
+<button type="button" class="btn btn-info" ng-click="moveUp()">
+Y+
+</button>
+<button type="button" class="btn btn-info" ng-click="moveDown()">
+Y-
+</button>
+<button type="button" class="btn btn-info" ng-click="previewArea()">
+Preview Area
+</button>
+</p>
+</div> 
+</div>
+
+</div>
+
+<script>
+var kitchensink = { };
+var canvas = new fabric.Canvas('canvas');
+</script>
+
+
+<script>
+$.ajax({
+        type: "GET",
+	url: "test.svg",
+	dataType: "xml",
+	success: function(xml) {
+		$(xml).find('text').parent().each(function(index,element){
+			var tmp = document.createElement("div");
+			tmp.appendChild(element);
+			element = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="600" height="600" viewBox="0 0 600 600" xml:space="preserve"><desc>Created with Fabric.js 1.6.0</desc><defs></defs>'+tmp.innerHTML+"</svg>";
+			fabric.loadSVGFromString(element, function(objects, options) {
+				var obj = fabric.util.groupSVGElements(objects, options);
+				console.log(obj);
+				
+				canvas.add(obj).centerObject(obj).renderAll();
+				obj.setCoords();
+			});
+			// canvg('canvas', element);
+		});
+	}
+});
+(function() {
+
+if (document.location.hash !== '#zoom') return;
+
+function renderVieportBorders() {
+var ctx = canvas.getContext();
+
+ctx.save();
+
+ctx.fillStyle = 'rgba(0,0,0,0.1)';
+
+ctx.fillRect(
+canvas.viewportTransform[4],
+canvas.viewportTransform[5],
+canvas.getWidth() * canvas.getZoom(),
+canvas.getHeight() * canvas.getZoom());
+
+ctx.setLineDash([5, 5]);
+
+ctx.strokeRect(
+canvas.viewportTransform[4],
+canvas.viewportTransform[5],
+canvas.getWidth() * canvas.getZoom(),
+canvas.getHeight() * canvas.getZoom());
+
+ctx.restore();
+}
+
+$(canvas.getElement().parentNode).on('mousewheel', function(e) {
+
+var newZoom = canvas.getZoom() + e.deltaY / 300;
+canvas.zoomToPoint({ x: e.offsetX, y: e.offsetY }, newZoom);
+
+renderVieportBorders();
+
+return false;
+});
+
+var viewportLeft = 0,
+viewportTop = 0,
+mouseLeft,
+mouseTop,
+_drawSelection = canvas._drawSelection,
+isDown = false;
+
+canvas.on('mouse:down', function(options) {
+isDown = true;
+
+viewportLeft = canvas.viewportTransform[4];
+viewportTop = canvas.viewportTransform[5];
+
+mouseLeft = options.e.x;
+mouseTop = options.e.y;
+
+if (options.e.altKey) {
+_drawSelection = canvas._drawSelection;
+canvas._drawSelection = function(){ };
+}
+
+renderVieportBorders();
+});
+
+canvas.on('mouse:move', function(options) {
+if (options.e.altKey && isDown) {
+var currentMouseLeft = options.e.x;
+var currentMouseTop = options.e.y;
+
+var deltaLeft = currentMouseLeft - mouseLeft,
+deltaTop = currentMouseTop - mouseTop;
+
+canvas.viewportTransform[4] = viewportLeft + deltaLeft;
+canvas.viewportTransform[5] = viewportTop + deltaTop;
+
+canvas.renderAll();
+renderVieportBorders();
+}
+});
+
+canvas.on('mouse:up', function() {
+canvas._drawSelection = _drawSelection;
+isDown = false;
+});
+})();
+
+</script>
+
+</div>
+
+<script>
+(function() {
+fabric.util.addListener(fabric.window, 'load', function() {
+var canvas = this.__canvas || this.canvas,
+canvases = this.__canvases || this.canvases;
+
+canvas && canvas.calcOffset && canvas.calcOffset();
+
+if (canvases && canvases.length) {
+for (var i = 0, len = canvases.length; i < len; i++) {
+canvases[i].calcOffset();
+}
+}
+});
+})();
+</script>
+
+
+</body>
+</html>

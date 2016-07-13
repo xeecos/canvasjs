@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="600" height="600" viewBox="0 0 600 600" xml:space="preserve">
+<desc>Created with Fabric.js 1.6.0</desc>
+<defs></defs>
+	<g transform="translate(268.39 291.98) rotate(2) scale(0.5 0.5)">
+		<text font-family="helvetica" font-size="40" style="stroke: #000000; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #ffffff; fill-rule: nonzero; opacity: 1;" >
+			<tspan x="-299.06" y="-95.88" fill="#ffffff">Lorem ipsum dolor sit amet,</tspan>
+			<tspan x="-299.06" y="-43.45" fill="#ffffff">consectetur adipisicing elit,</tspan>
+			<tspan x="-299.06" y="8.98" fill="#ffffff">sed do eiusmod tempor incididunt</tspan>
+			<tspan x="-299.06" y="61.42" fill="#ffffff">ut labore et dolore magna aliqua.</tspan>
+			<tspan x="-299.06" y="113.85" fill="#ffffff">Ut enim ad</tspan>
+		</text>
+	</g>
+</svg>
